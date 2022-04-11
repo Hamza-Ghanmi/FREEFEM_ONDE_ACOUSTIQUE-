@@ -1,0 +1,37 @@
+// Paramètres
+
+real a=6.; // Longueur
+real b=1.; // Largeur
+int n=1; // mode de propagation selon x
+int m=1; // mode de propagation selon y
+int nn=100; // nombre d'elements sur la frontière
+real kx=n*pi/a; // nombre d'onde selon x
+real ky=m*pi/b; // vecteur d'onde selon y
+real k=sqrt(kx^2+ky^2); // vecteur d'onde selon x
+func px0=cos(ky*y); //condition de Dirichlet
+
+// domaine d'étude et maillage
+
+border Gamma1(t=b,0.){x=0.;y=t;label=1;}
+border Gamma2(t=0.,a){x=t;y=0.;label=2;}
+border Gamma3(t=0.,b){x=a;y=t;label=3;}
+border Gamma4(t=a,0.){x=t;y=b;label=4;}
+mesh Th = buildmesh(Gamma1(nn) + Gamma2(3.*nn) +  Gamma3(nn) +  Gamma4(3.*nn));
+
+// espace des fonctions test
+
+fespace Vh(Th,P1);
+Vh<complex> v,p;
+Vh pr;
+
+// resolution
+
+solve onde(p,v)=int2d(Th)((k^2*v*p)-(dx(v)*dx(p)+dy(v)*dy(p)))
+                +int1d(Th,3)(1i*kx*v*p)
+				+on(1,p=px0)
+				;
+pr = real(p);
+
+// afichage
+
+plot(pr, wait=1, fill=true, value=true, dim=2);			

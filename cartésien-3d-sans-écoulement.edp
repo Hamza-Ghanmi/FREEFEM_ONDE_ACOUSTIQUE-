@@ -1,0 +1,42 @@
+load "iovtk"
+load "medit"
+// Paramètres
+
+real a=6.; // Longueur
+real b=1.; // Largeur
+int m=1; // mode de propagation selon y
+int nn=10; // nombre d'elements sur la frontière
+real ky=m*pi/b; // vecteur d'onde selon y
+real k=2*pi/3.; // vecteur d'onde
+real kx=sqrt(k^2-ky^2); // nombre d'onde selon x
+func px0=cos(ky*y); //condition de Dirichlet
+
+// domaine d'étude et maillage
+
+include "cube.idp"
+int[int]  Nxyz=[6*nn,nn,nn];
+real [int,int]  Bxyz=[[0.,a],[0.,b],[0.,b]];
+int [int,int]  Lxyz=[[1,2],[3,4],[5,6]];
+mesh3 Th3=Cube(Nxyz,Bxyz,Lxyz);
+
+// espace des fonctions test
+
+fespace Vh3(Th3,P13d) ;
+Vh3<complex> v,p;
+Vh3 pr;
+
+// resolution
+
+solve onde(p,v)=int3d(Th3)((k^2*v*p)-(dx(v)*dx(p)+dy(v)*dy(p)+dz(v)*dz(p)))
+                +int2d(Th3,2)(1i*kx*v*p)
+				+on(1,p=px0)
+				;
+pr = real(p);
+
+plot(pr, wait=1, fill=true, value=true, dim=2);	
+
+// afichage
+
+int[int] Order = [1];
+string DataName = "pr";
+savevtk("pr.vtu", Th3, pr, dataname=DataName, order=Order);		
